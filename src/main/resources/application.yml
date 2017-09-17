@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: lunasoft-demo
+  jpa:
+    database: MYSQL
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+  datasource:
+    username: test
+    password: test
+    url: jdbc:mysql://localhost:3306/test?useSSL=false
+    
+logging:
+  file: ../../../logs/${spring.application.name}_MM_DD_YYYY.log
+  level:
+    com.example.demo: DEBUG
+    org.springframework.web: warn
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

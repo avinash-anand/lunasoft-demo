@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<link rel='stylesheet'
+	href='/webjars/bootstrap/3.3.7-1/css/bootstrap.min.css' />
+<script type="text/javascript" src="/webjars/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript"
+	src="/webjars/bootstrap/3.3.7-1/js/bootstrap.min.js"></script>
+<title>Query Or Report</title>
+</head>
+<body>
+	<div class="container">
+		<h2>Query Or Report</h2>
+		<ul class="nav nav-tabs">
+			<li class="active"><a data-toggle="tab" href="#query">Query</a></li>
+			<li><a data-toggle="tab" href="#report">Report</a></li>
+		</ul>
+
+		<div class="tab-content">
+			<div id="query" class="tab-pane fade in active">
+				<h3>Query</h3>
+				<div class="form-group inline">
+					<div class="control-group">
+						<label class="control-label">Enter Country Name or Country
+							Code : </label>
+						<div class="controls">
+							<input type="text" name="nameOrCode" id="nameOrCode"
+								class="form-control form-inline" required="required"
+								pattern=".{2,}" placeholder="IN or INDIA" /> &nbsp;
+						</div>
+						<button type="submit" class="btn btn-primary" id="qSubmit">Query</button>
+						<button type="reset" class="btn btn-default" id="qReset">Reset</button>
+					</div>
+				</div>
+			</div>
+			<div id="report" class="tab-pane fade">
+				<h3>Report</h3>
+				<button type="submit" class="btn btn-primary" id="rSubmit">Generate report</button>
+				<button type="reset" class="btn btn-default" id="rReset">Reset</button>
+			</div>
+		</div>
+	</div>
+	<div class="container" id="data-container"></div>
+</body>
+<script type="text/javascript">
+function searchCountry() {
+    var inputCountry = $("#nameOrCode").val();
+    if (inputCountry && inputCountry.length >= 2) {
+        $.get("/countries", {
+            q : inputCountry
+        }, function(data) {
+            if(data.country && data.country != null) {
+                var tbStart = '<table class = "table table-bordered">';
+                var th = '<tr><th>Country name</th><th>Iso Code</th><th>Airport Name</th><th>Airport Type</th><th>Airport GPS Code</th><th>Airport Local Code</th><th>Runway Id</th><th>Runway Length</th><th>Runway Width</th><th>Runway Surface</th></tr>';
+                var tbEnd = '</table>';
+                var tbData = '';
+                $.each(data.airportRunwayData, function(index, elem){
+                	tbData += '<tr><td>' + data.country.name + '</td><td>' + data.country.code + '</td><td>' + 
+                	elem.airportName + '</td><td>' + elem.airportType + '</td><td>' + 
+                	(elem.airportGpsCode != null ? elem.airportGpsCode : 'NO DATA') + '</tc><td>' + 
+                	(elem.airportLocalCode != null ? elem.airportLocalCode : 'NO DATA') + '</td><td>' + 
+                	(elem.runwayId != null ? elem.runwayId : 'NO DATA') + '</td><td>' + 
+                	(elem.runwayLengthFt != null ? elem.runwayLengthFt : 'NO DATA') + '</td><td>' + 
+                	(elem.runwayWidthFt != null ? elem.runwayWidthFt : 'NO DATA') + '</td><td>' + 
+                	(elem.runwaySurface != null ? elem.runwaySurface : 'NO DATA') + '</td></tr>';
+                });
+                var innerHtml = tbStart + th + tbData + tbEnd;
+                $("#data-container").html(innerHtml);                               
+            } else {
+                $("#data-container").html('<p class = "bg-danger">No Country found with given country code or name!</p>');
+            }
+        });
+    } else {
+        alert('At least 2 chracters are needed to do the query!');
+    }
+}
+
+function printCountryWithMaxOrMinAirports(data) {
+	var tbStart = '<table class = "table table-bordered">';
+    var th = '<tr><th>#</th><th>Country name</th><th>Iso Code</th><th>Airport Count</th></tr>';
+    var tbEnd = '</table>';
+    var tbData = '';
+    $.each(data, function(index, elem){
+        tbData += '<tr><td>' + (index + 1) + '</td><td>' + elem.name + '</td><td>' + elem.code + '</td><td>' + elem.airportCount + '</td></tr>';
+    });
+    var innerHtml = tbStart + th + tbData + tbEnd;
+    $("#data-container").html($("#data-container").html() + innerHtml);
+}
+
+function printMostCommonRunwayIdentification(data) {
+	var tbStart = '<table class = "table table-bordered">';
+    var th = '<tr><th>#</th><th>Runway Identification</th><th>Count</th></tr>';
+    var tbEnd = '</table>';
+    var tbData = '';
+    $.each(data, function(index, elem){
+        tbData += '<tr><td>' + (index + 1) + '</td><td>'  + elem.runwayIdentification + '</td><td>' + elem.count + '</td></tr>';
+    });
+    var innerHtml = tbStart + th + tbData + tbEnd;
+    $("#data-container").html($("#data-container").html() + innerHtml);
+}
+
+function addNewLine() {
+	$("#data-container").html($("#data-container").html() + '<br/>');
+}
+
+function addParagraph(content) {
+	$("#data-container").html($("#data-container").html() + '<p class="bg-success"><b>' + content + '</b></p>');
+}
+
+function printCountryWiseRunwaySurface(mapData) {
+	var tbStart = '<table class = "table table-bordered">';
+    var th = '<tr><th>#</th><th>Country name</th><th>Iso Code</th><th>Runway Surfaces</th></tr>';
+    var tbEnd = '</table>';
+    var tbData = '';
+    var initIndex = 0;
+    $.each(mapData, function(key, value){
+    	initIndex++;
+    	tbData += '<tr><td>' + initIndex + '</td><td>' + key + '</td><td>' + value[0].countryCode + '</td><td>';
+    	var surfaceData = '';
+    	$.each(value, function(index, elem){
+    		surfaceData += elem.runwaySurface + ', ';
+    	});
+    	tbData += surfaceData + '</td></tr>';
+    });
+    var innerHtml = tbStart + th + tbData + tbEnd;
+    $("#data-container").html($("#data-container").html() + innerHtml);
+}
+
+function getReportData() {
+	$.get("/country-report", function(data) {
+		addNewLine();
+		addParagraph("Top 10 Countries with Maximum number of airports in descending order");
+		printCountryWithMaxOrMinAirports(data.countryWithMaxAirports);
+		addNewLine();
+		addParagraph("Top 10 Countries with Minimum number of airports in ascending order");
+		printCountryWithMaxOrMinAirports(data.countryWithMinAirports);
+		addNewLine();
+		addParagraph("Top 10 Most Common Runway Identification");
+		printMostCommonRunwayIdentification(data.mostCommonRunwayIdent);
+		addNewLine();
+		addParagraph("Country wise Type of Runway Surfaces");
+		printCountryWiseRunwaySurface(data.countryWiseSurface);
+	});
+}
+
+
+function clearScreen() {
+	$('#nameOrCode').val('');
+    $("#data-container").html('');
+}
+
+$(document).ready(function() {
+	$("#qSubmit").click(function() {
+		$("#data-container").html('');
+		searchCountry();
+	});
+	$("#rSubmit").click(function() {
+		clearScreen();
+		getReportData();
+	});
+	$("#qReset").click(function(){
+		clearScreen();
+	});
+	$("#rReset").click(function(){
+        clearScreen();
+    });
+	$("a").click(function(){
+		clearScreen();
+	});
+});
+</script>
+</html>
