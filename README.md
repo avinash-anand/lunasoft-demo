@@ -1,4 +1,4 @@
-# Lunasoft Coding question
+# Lunatech Coding question
 
 ## Question
 
